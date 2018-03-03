@@ -1,0 +1,1 @@
+export const KOYTA_REPOS_URL = 'https://api.github.com/users/koyta/repos';

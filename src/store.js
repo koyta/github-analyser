@@ -1,4 +1,10 @@
-import { action, computed, observable, useStrict, extendShallowObservable } from 'mobx'
+import {
+  action,
+  computed,
+  extendShallowObservable,
+  observable,
+  useStrict,
+} from 'mobx'
 import { apiCall } from './utils/apiCall'
 
 useStrict(true)
@@ -15,7 +21,6 @@ class GithubStore {
     return this._repoLanguages
   }
 
-  // @observable _overallLanguages = observable.shallowObject({})
   @observable _overallLanguages = observable.shallowMap({})
 
   @computed
@@ -32,12 +37,6 @@ class GithubStore {
         temp.set(lang, map.get(lang))
       }
     })
-    // for (let lang in this._overallLanguages) {
-    //   if (this._overallLanguages.hasOwnProperty(lang)) { //if (this._overallLanguages have "JavaScript" key)
-    //     console.log(lang)
-    //     temp.push(this._overallLanguages[lang])
-    //   }
-    // }
     let sum = 0
     temp.forEach((item) => {
       sum += item
@@ -66,20 +65,10 @@ class GithubStore {
             this._overallLanguages.set(lang, langs[lang])
           } else {
             extendShallowObservable(this._overallLanguages, {
-              [lang]: langs[lang]
+              [lang]: langs[lang],
             })
           }
         })
-        // let langs = item.languages
-        // Object.keys(langs).forEach((lang) => {
-        //   if (lang in this._overallLanguages) {
-        //     this._overallLanguages[lang] += langs[lang]
-        //   } else {
-        //     extendShallowObservable(this._overallLanguages, {
-        //       [lang]: langs[lang],
-        //     })
-        //   }
-        // })
       })
       this.state = 'done'
     } catch (error) {

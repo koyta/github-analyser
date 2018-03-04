@@ -1,19 +1,22 @@
-import {
-  action,
-  computed,
-  extendShallowObservable,
-  observable,
-  useStrict,
-} from 'mobx'
+import { action, computed, observable, toJS, useStrict, when, } from 'mobx'
 import { apiCall } from './utils/apiCall'
+import { enableLogging } from 'mobx-logger'
 
+enableLogging()
 useStrict(true)
 
 class GithubStore {
 
-  state = 'done' // pending | done | error
+  @observable chartData = []
 
   @observable _repos = []
+
+  _state = 'done' // pending | done | error
+
+  @computed get state () {
+    return this._state
+  }
+
   @observable _repoLanguages = []
 
   @computed
@@ -29,64 +32,72 @@ class GithubStore {
   }
 
   @computed
+  get sortedOverallLanguagesValues () {
+    let sorted = this._overallLanguages.entries().sort((a, b) => {
+      console.log(a);console.log(b); console.log(' ');
+      return a[1] < b[1];
+    });
+    return sorted;
+  }
+
+  @computed
   get languagesSummary () {
-    let temp = new Map()
-    this._overallLanguages.forEach((lang, i, map) => {
-      if (map.has(lang)) {
-        console.log(lang)
-        temp.set(lang, map.get(lang))
-      }
+    let sum = 0;
+    this._overallLanguages.entries().forEach((item, i) => {
+      sum += item[1]
     })
-    let sum = 0
-    temp.forEach((item) => {
-      sum += item
-    })
-    console.log(sum)
     return sum
   }
 
-  @action
+  @action('Считаем языки для юзера')
   async calcLangsForUser () {
     try {
-      this.state = 'pending'
+      this._state = 'pending'
       let langs = this._repos.map(async repo => {
         let response = await apiCall.get(repo.languages_url)
         let data = response.data
         return {
           id: repo.id,
-          languages: data,
+          data: data,
         }
       })
       this._repoLanguages = await Promise.all(langs)
       this._repoLanguages.forEach(item => {
-        let langs = item.language
+        let langs = toJS(item).data
         Object.keys(langs).forEach(lang => {
           if (this._overallLanguages.has(lang)) {
-            this._overallLanguages.set(lang, langs[lang])
+            // Если уже есть язык, то складываем значение
+            this._overallLanguages.set(lang,
+              (langs[lang] + this._overallLanguages.get(lang)))
           } else {
-            extendShallowObservable(this._overallLanguages, {
-              [lang]: langs[lang],
-            })
+            // Если нет языка, то добавляем его
+            this._overallLanguages.set(lang, langs[lang])
           }
         })
       })
-      this.state = 'done'
+      this._state = 'done'
     } catch (error) {
       console.error(error)
-      this.state = 'error'
+      this._state = 'error'
       throw new Error(error)
     }
+
+    when('State listener', () => {
+      return this.state === 'error'
+    }, () => {
+      console.log('error')
+    })
 
   }
 
   @action('Скачиваем данные с гитхаба')
   async fetchUserInfo (url) {
     try {
-      this.state = 'pending'
+      this._state = 'pending'
       let response = await apiCall.get(url)
       this._repos = await response.data
       await this.calcLangsForUser()
-      this.state = 'done'
+      this._state = 'done'
     } catch (error) {
       console.error(error)
     }

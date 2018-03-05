@@ -2,9 +2,12 @@ body, html
   margin 0
   padding 0
   font-size 100%
-  font-family "Helvetica Neue", Helvetica, Arial, sans-serif
   height 100%
   width 100%
+  background-color white+5%
+
+*
+  font-family "Segoe UI", sans-serif
 
 #root
   height 100%
@@ -16,11 +19,41 @@ body, html
   section
     position relative
     display grid
-    grid-template-rows 20px 20px auto
+    grid-template-rows 80px 20px 20px auto
     grid-template-columns auto
+    grid-row-gap 5px
+    padding 35px 40px
     width 70%
     border-radius 10px
     box-shadow 0 15px 40px black+60%
+    .centered-block
+      height 100%
+      width 100%
+      display flex
+      align-items center
+      justify-content center
+      flex-flow row nowrap
+      & > *
+        margin 0 10px
+      input
+        border 1px solid #ccc
+        background none
+        border-radius 15px
+        height 30px
+        width 160px
+        padding 0 15px
+        box-shadow 0 10px 20px black+90%
+        &:focus
+          outline none
+      button
+        border 1px solid #ccc
+        border-radius 5px
+        min-height 30px
+        padding 0 15px
+        background none
+        box-shadow 0 10px 20px black+90%
+        &:focus
+          outline none
     div
       position relative
       display block
@@ -32,3 +65,6 @@ body, html
         height 100%
         text-align center
         line-height 1
+.langs
+  font-size 80%
+  line-height 1

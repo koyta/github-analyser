@@ -3,9 +3,12 @@ html {
   margin: 0;
   padding: 0;
   font-size: 100%;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   height: 100%;
   width: 100%;
+  background-color: #fff;
+}
+* {
+  font-family: "Segoe UI", sans-serif;
 }
 #root {
   height: 100%;
@@ -18,11 +21,47 @@ html {
 #root section {
   position: relative;
   display: grid;
-  grid-template-rows: 20px 20px auto;
+  grid-template-rows: 80px 20px 20px auto;
   grid-template-columns: auto;
+  grid-row-gap: 5px;
+  padding: 35px 40px;
   width: 70%;
   border-radius: 10px;
   box-shadow: 0 15px 40px #999;
+}
+#root section .centered-block {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-flow: row nowrap;
+}
+#root section .centered-block > * {
+  margin: 0 10px;
+}
+#root section .centered-block input {
+  border: 1px solid #ccc;
+  background: none;
+  border-radius: 15px;
+  height: 30px;
+  width: 160px;
+  padding: 0 15px;
+  box-shadow: 0 10px 20px #e6e6e6;
+}
+#root section .centered-block input:focus {
+  outline: none;
+}
+#root section .centered-block button {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-height: 30px;
+  padding: 0 15px;
+  background: none;
+  box-shadow: 0 10px 20px #e6e6e6;
+}
+#root section .centered-block button:focus {
+  outline: none;
 }
 #root section div {
   position: relative;
@@ -35,5 +74,9 @@ html {
   display: inline-block;
   height: 100%;
   text-align: center;
+  line-height: 1;
+}
+.langs {
+  font-size: 80%;
   line-height: 1;
 }

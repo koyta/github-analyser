@@ -3,13 +3,14 @@ import { apiCall } from './utils/apiCall'
 import { enableLogging } from 'mobx-logger'
 
 enableLogging()
-useStrict(true)
+useStrict(false)
 
 class GithubStore {
 
   @observable chartData = []
 
   @observable _repos = []
+  @observable _user = {}
 
   _state = 'done' // pending | done | error
 
@@ -32,21 +33,74 @@ class GithubStore {
   }
 
   @computed
+  get starredRepos () {
+    if (this._repos === 0) {
+      return 0
+    }
+    let result = 0;
+    this._repos.forEach(repo => {
+      result += repo.stargazers_count
+    })
+    return result;
+  }
+
+  @computed
   get sortedOverallLanguagesValues () {
-    let sorted = this._overallLanguages.entries().sort((a, b) => {
-      console.log(a);console.log(b); console.log(' ');
-      return a[1] < b[1];
-    });
-    return sorted;
+    return this._overallLanguages.entries().sort((a, b) => {
+      return a[1] < b[1]
+    })
+  }
+
+  @computed get userLink () {
+    return this._user.html_url
+  }
+
+  @computed
+  get languagesEntries () {
+    if (this._repos.length === 0) {
+      return []
+    }
+    return this._repoLanguages.entries()
+  }
+
+  @computed
+  get languagesKeys () {
+    if (this._repos.length === 0) {
+      return []
+    }
+    return this._repoLanguages.keys()
+  }
+
+  @computed
+  get languagesValues () {
+    if (this._repos.length === 0) {
+      return []
+    }
+    return this._repoLanguages.values()
   }
 
   @computed
   get languagesSummary () {
-    let sum = 0;
-    this._overallLanguages.entries().forEach((item, i) => {
-      sum += item[1]
+    if (this._overallLanguages.size === 0) {
+      return -1
+    }
+    return this._overallLanguages.values().reduce((res, item) => {
+      return res += item
     })
-    return sum
+  }
+
+  @action('Очищаем хранилище языков программирования')
+  eraseRepos () {
+    try {
+      this._repoLanguages = observable([])
+      this._repos = observable([])
+      this._overallLanguages = observable.shallowMap({})
+    }
+
+    catch (error) {
+      console.log(error)
+      throw new Error(`${error.type}: ${error.message}`)
+    }
   }
 
   @action('Считаем языки для юзера')
@@ -90,16 +144,43 @@ class GithubStore {
 
   }
 
-  @action('Скачиваем данные с гитхаба')
-  async fetchUserInfo (url) {
+  @action('Очищаем хранилище пользователя')
+  eraseUser () {
+    try {
+      this._user = observable([])
+    }
+    catch (error) {
+      console.log(error)
+      throw new Error(`${error.type}: ${error.message}`)
+    }
+  }
+
+  @action('Скачиваем данные пользователя')
+  async fetchUserInfo (user) {
+    this.eraseUser()
     try {
       this._state = 'pending'
-      let response = await apiCall.get(url)
+      let response = await apiCall.get(`/users/${user}`)
+      this._user = response.data
+      console.log(response.data)
+      console.log(this._user)
+      this._state = 'done'
+    } catch (error) {
+      console.error(`Error while fetching user data. ${error}`)
+    }
+  }
+
+  @action('Скачиваем данные репозиториев пользователя')
+  async fetchUserReposInfo (user) {
+    this.eraseRepos()
+    try {
+      this._state = 'pending'
+      let response = await apiCall.get(`/users/${user}/repos`)
       this._repos = await response.data
       await this.calcLangsForUser()
       this._state = 'done'
     } catch (error) {
-      console.error(error)
+      console.error(`Error while fetching language data. ${error}`)
     }
   };
 }

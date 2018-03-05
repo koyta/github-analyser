@@ -7,53 +7,76 @@ export default class Repos extends Component {
   state = {
     keys: [],
     values: [],
+    entries: [],
     sum: 0,
+    user: ''
   }
 
   colors = [
+    '#786fa6',
     '#546de5',
     '#63cdda',
-    '#786fa6',
-    '#e15f41',
-    '#f5cd79',
     '#f78fb3',
     '#e66767',
+    '#e15f41',
+    '#f5cd79',
   ]
 
   computeData = async () => {
     const sorted = this.props.store.sortedOverallLanguagesValues
-    const values = sorted.map(item => {
+    const sortedValues = sorted.map(item => {
       return item[1]
     })
-    const keys = sorted.map(item => {
+    const sortedKeys = sorted.map(item => {
       return item[0]
     })
     const sum = this.props.store.languagesSummary
     this.setState({
-      keys: keys,
-      values: values,
+      keys: sortedKeys,
+      values: sortedValues,
       sum: sum,
     })
   }
 
-  async componentDidMount () {
-    await this.props.store.fetchUserInfo('/users/koyta/repos')
+  onUsernameChange = (e) => {
+    e.preventDefault()
+    this.setState({
+      user: e.currentTarget.value
+    })
+  }
+
+  onSearchClick = async (e) => {
+    e.preventDefault()
+    await this.props.store.fetchUserReposInfo(this.state.user)
     await this.computeData()
+    await this.props.store.fetchUserInfo(this.state.user)
   }
 
   render () {
     return (
       <section>
-        <div>
-          {this.state.keys.map((key, i) => {
+        <div className="centered-block">
+          <input type="text" value={this.state.user} onChange={(e) => this.onUsernameChange(e)} placeholder={'username'}/>
+          <button onClick={(e) => this.onSearchClick(e)}>Fetch</button>
+          <a href={this.props.store.userLink}>{this.props.store.userLink}</a>
+          <p>Stars: {this.props.store.starredRepos}</p>
+        </div>
+        <div className="langs">
+          {this.state.keys.filter((key) => {
+            return this.state.values.map(value => {
+              return value/this.state.sum*100 > 5
+            })
+          }).map((key, i) => {
             return <span key={i} style={{
               width: `${this.state.values[i] / this.state.sum * 100}%`,
-            }}>{key}</span>
+            }}>{key}&nbsp;{(this.state.values[i] / this.state.sum * 100).toFixed(1)}%</span>
           })}
         </div>
-        <div>
+        <div className="percent">
           {
-            this.state.values.map((value, i) => {
+            this.state.values.filter(value => {
+              return (value/this.state.sum*100) > 5
+            }).map((value, i) => {
               return <span key={i} style={{
                 width: `${value / this.state.sum * 100}%`,
                 background: this.colors[i],
